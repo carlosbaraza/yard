@@ -1,7 +1,7 @@
 {
   "name": "yard",
   "main": "./lib/yard",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "YARD Documentation generator (Ruby)",
   "activationCommands": {
     "atom-workspace": "yard:create"
@@ -11,6 +11,5 @@
   "engines": {
     "atom": ">0.50.0"
   },
-  "dependencies": {
-  }
+  "dependencies": {}
 }
