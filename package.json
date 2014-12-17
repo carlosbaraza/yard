@@ -1,0 +1,16 @@
+{
+  "name": "yard",
+  "main": "./lib/yard",
+  "version": "0.1.0",
+  "description": "YARD Documentation generator (Ruby)",
+  "activationCommands": {
+    "atom-workspace": "yard:create"
+  },
+  "repository": "https://github.com/xel51/yard",
+  "license": "MIT",
+  "engines": {
+    "atom": ">0.50.0"
+  },
+  "dependencies": {
+  }
+}

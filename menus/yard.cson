@@ -1,0 +1,22 @@
+# See https://atom.io/docs/latest/creating-a-package#menus for more details
+'context-menu':
+  'atom-text-editor': [
+    {
+      'label': 'Create YARD'
+      'command': 'yard:create'
+    }
+  ]
+'menu': [
+  {
+    'label': 'Packages'
+    'submenu': [
+      'label': 'yard'
+      'submenu': [
+        {
+          'label': 'Create YARD'
+          'command': 'yard:create'
+        }
+      ]
+    ]
+  }
+]
