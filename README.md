@@ -5,25 +5,28 @@ the creation of the YARD-style comments for your methods and classes.
 
 ### Usage
 
-To use it is as simple as situating at the top of the method to document and
-press `ctrl + enter`. This will generate the following documentation:
+To use it is as simple as situating on a method and pressing `ctrl + enter`.
+This will analyse the method params and generate the following snippet for the
+documentation:
 
 ```
 class UndocumentedClass
   # Description of method
   #
-  # @param param1 [Symbol] description of param1, and possible examples
-  # @return [String] description of returned object
-  def undocumented_method
-
+  # @param [Type] param1 describe param1
+  # @param [Type] param2=3 describe param2=3
+  # @return [Type] description of returned object
+  def undocumented_method(param1, param2=3)
+    'The method is not documented!'
   end
 end
 ```
 
+`Tab`/`shift + Tab` keys could be used to jump to the next param, description or
+Type.
+
 ### Future
 
 I will update this package soon with more intelligence and features:
-* **Document the current method or class**, changing the cursor position
-  to the top of the method or class.
-* **Scan the method** to know what arguments are passed and so generate the
-  proper documentation.
+* **Analyse better the method params.
+* **Implement for class.
