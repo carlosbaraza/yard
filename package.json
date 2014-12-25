@@ -6,7 +6,7 @@
   "activationCommands": {
     "atom-workspace": "yard:create"
   },
-  "repository": "https://github.com/xel51/yard",
+  "repository": "https://github.com/carlosbaraza/yard",
   "license": "MIT",
   "engines": {
     "atom": ">0.50.0"
