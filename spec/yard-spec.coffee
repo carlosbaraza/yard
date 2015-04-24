@@ -15,6 +15,9 @@ describe "Yard", ->
   describe "when the yard:create event is triggered", ->
     describe "for single line method", ->
       beforeEach ->
+        waitsForPromise ->
+          activationPromise
+
         editor.insertText """
           class UndocumentedClass
             def undocumented_method(param1, param2=3)
@@ -43,6 +46,9 @@ describe "Yard", ->
 
     describe "for multiline method", ->
       beforeEach ->
+        waitsForPromise ->
+          activationPromise
+
         editor.insertText """
           class UndocumentedClass
             def undocumented_multiline_method(param1, param2 = 3, opts = {})
