@@ -1,5 +1,7 @@
 # YARD Generator (Atom package)
 
+[![Build Status](https://travis-ci.org/carlosbaraza/yard.svg)](https://travis-ci.org/carlosbaraza/yard)
+
 YARD is a commonly used Ruby documentation tool. This package will accelerate
 the creation of the YARD-style comments for your methods and classes.
 
