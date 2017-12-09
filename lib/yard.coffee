@@ -9,22 +9,26 @@ module.exports = Yard =
     editor = atom.workspace.getActivePaneItem()
     cursor = editor.getLastCursor()
     editor.transact =>
-      prevDefRow = @findStartRow(editor, cursor)
-      params = @parseMethodLine(editor.lineTextForBufferRow(prevDefRow))
-      snippet_string = @buildSnippetString(params)
-      @insertSnippet(editor, cursor, prevDefRow, snippet_string)
+      {rowNumber, definitionType} = @findStartRow(editor, cursor)
+      if !definitionType then return
+
+      params = @parseMethodLine(editor.lineTextForBufferRow(rowNumber))
+      snippet_string = @buildSnippetString(params, definitionType)
+      @insertSnippet(editor, cursor, rowNumber, snippet_string)
 
   findStartRow: (editor, cursor) ->
-    row = 0
+    output = { rowNumber: 0, definitionType: '' }
     editor.moveToEndOfLine()
     scanStart = cursor.getBufferPosition()
     endScan = [0,0]
-
-    editor.backwardsScanInBufferRange /(def)\s/, [scanStart, endScan], (element) =>
-      row = element.range.end.row
+    editor.backwardsScanInBufferRange /(def|class|module)\s(self)?/, [scanStart, endScan], (element) =>
+      output.definitionType = if element.match[1] is 'def'
+        "#{if element.match[2] is 'self' then 'class ' else ''}method"
+      else
+        element.match[1]
+      output.rowNumber = element.range.end.row
       element.stop()
-
-    row
+    output
 
   insertSnippet: (editor, cursor, prevDefRow, snippet_string) ->
     cursor.setBufferPosition([prevDefRow,0])
@@ -34,13 +38,17 @@ module.exports = Yard =
     editor.setIndentationForBufferRow(cursor.getBufferRow(), indentation)
     Snippets.insert(snippet_string)
 
-  buildSnippetString: (params) ->
-    snippet_string = "# ${1:Description of method}\n#\n"
-    index = 2
-    for param in params
-      snippet_string += "# @param [${#{index}:Type}] #{param} ${#{index + 1}:describe #{param}}\n"
-      index += 2
-    snippet_string += "# @return [${#{index}:Type}] ${#{index + 1}:description of returned object}"
+  buildSnippetString: (params, definitionType) ->
+    snippet_string = "# ${1:Description of #{definitionType}}\n#"
+
+    if definitionType.match /method/
+      index = 2
+      for param in params
+        cleanParam = param.replace(':', '')
+        snippet_string += "\n# @param [${#{index}:Type}] #{cleanParam} ${#{index + 1}:describe_#{cleanParam}}"
+        index += 2
+
+      snippet_string += "\n# @return [${#{index}:Type}] ${#{index + 1}:description of returned object}"
     snippet_string
 
   parseMethodLine: (methodLine) ->
