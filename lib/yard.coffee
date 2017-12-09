@@ -15,10 +15,15 @@ module.exports = Yard =
       @insertSnippet(editor, cursor, prevDefRow, snippet_string)
 
   findStartRow: (editor, cursor) ->
-    row = cursor.getBufferRow()
-    while (editor.buffer.lines[row].indexOf('def ') == -1)
-      break if row == 0
-      row -= 1
+    row = 0
+    editor.moveToEndOfLine()
+    scanStart = cursor.getBufferPosition()
+    endScan = [0,0]
+
+    editor.backwardsScanInBufferRange /(def)\s/, [scanStart, endScan], (element) =>
+      row = element.range.end.row
+      element.stop()
+
     row
 
   insertSnippet: (editor, cursor, prevDefRow, snippet_string) ->
