@@ -59,7 +59,7 @@ module.exports = Yard =
       if element.match[1] is 'def'
         row.name = "#{if element.match[2] is 'self' then '.' else '#'}" + element.match[3]
         row.type = "#{if element.match[2] is 'self' then 'class_' else ''}method"
-      else if element.match[1].match /[A-Z_]+\s*=/
+      else if /[A-Z_]+\s*=/.test element.match[1]
         row.name = element.match[1].replace('=', '').trim()
         row.type = 'constant'
       else
@@ -70,13 +70,15 @@ module.exports = Yard =
 
   commentAlreadyExists: (editor, row) ->
     if row.number is 0 then return false
-    if row.type is 'constant' then return editor.lineTextForBufferRow(row.number).match(/# /)
-
+    currentRow = editor.lineTextForBufferRow(row.number)
     rowAbove = editor.lineTextForBufferRow(row.number - 1)
-    if row.type.match(/method/)
-      rowAbove.match(/# @return/)
-    else
-      rowAbove.match(/# /)
+    switch
+      when /constant/.test row.type
+        /# /.test currentRow
+      when /method/.test row.type
+        /# @return/.test rowAbove
+      else
+        /# /.test rowAbove
 
   insertSnippet: (editor, cursor, definitionRowNumber, comment, printAbove) ->
     cursor.setBufferPosition([definitionRowNumber, 0])
@@ -91,32 +93,32 @@ module.exports = Yard =
     Snippets.insert(comment)
 
   buildComment: (editor, row) ->
-    params = @buildParams(row.params)
     comment = ''
-    if row.number isnt 0 and row.type isnt 'constant' and atom.config.get('yard.ensureBlankLineBeforeDescription')
-      if editor.lineTextForBufferRow(row.number - 1).trim().length isnt 0
-        comment += "\n"
+    index = 0
+    if row.type isnt 'constant'
+      if row.number isnt 0 and editor.lineTextForBufferRow(row.number - 1).trim().length isnt 0
+        if atom.config.get('yard.ensureBlankLineBeforeDescription') then comment += "\n"
     if atom.config.get('yard.addCommentLineBeforeDescription') then comment += "\n#"
     # Description
-    comment += "# ${1:Description of #{row.name}}"
+    comment += "# ${#{index+=1}:Description of #{row.name}}"
+    switch
+      when /method/.test row.type
+        if atom.config.get('yard.addCommentLineAfterMethodDescription') then comment += "\n#"
+        params = @buildParams(row.params)
+        for param in params
+          if atom.config.get('yard.addCommentLineBeforeParams') then comment += "\n#"
+          # @param
+          comment += "\n# @param [${#{index+=1}:Type}] #{param.argument} "
+          description = if param.default then "default: #{param.default}" else "describe_#{param.argument}_here"
+          comment += "${#{index+=1}:#{description}}"
+          if atom.config.get('yard.addCommentLineAfterParams') then comment += "\n#"
+        if atom.config.get('yard.addCommentLineBeforeReturn') then comment += "\n#"
+        # @return
+        comment += "\n# @return [${#{index+=1}:Type}] ${#{index+1}:description_of_returned_object}"
+        if atom.config.get('yard.addCommentLineAfterReturn') then comment += "\n#"
 
-    if row.type.match /(class|module)/
-      if atom.config.get('yard.addCommentLineAfterClassOrModuleDescription') then comment += "\n#"
-    if row.type.match /method/
-      if atom.config.get('yard.addCommentLineAfterMethodDescription') then comment += "\n#"
-      index = 1
-      for param in params
-        if atom.config.get('yard.addCommentLineBeforeParams') then comment += "\n#"
-        # @param
-        comment += "\n# @param [${#{index+=1}:Type}] #{param.argument} "
-        postfix = if param.default then "default: #{param.default}" else "describe_#{param.argument}_here"
-        comment += "${#{index+=1}:#{postfix}}"
-
-        if atom.config.get('yard.addCommentLineAfterParams') then comment += "\n#"
-      if atom.config.get('yard.addCommentLineBeforeReturn') then comment += "\n#"
-
-      # @return
-      comment += "\n# @return [${#{index+=1}:Type}] ${#{index+1}:description_of_returned_object}"
+      when /\A(class|module)\z/.test row.type
+        if atom.config.get('yard.addCommentLineAfterClassOrModuleDescription') then comment += "\n#"
 
     comment
 
