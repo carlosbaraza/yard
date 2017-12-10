@@ -15,6 +15,7 @@ This will analyse the method (and its params), class, or module and generate the
 module UndocumentedModule
   # Description of UndocumentedClass
   class UndocumentedClass
+    MY_CONSTANT = 'Important string'.freeze # Description of MY_CONSTANT
 
     # Description of #undocumented_method
     #
@@ -66,12 +67,6 @@ Type.
 def undocumented_method(param1={ foo:, bar:, baz: })
   'The method is not documented!'
 end
-```
-
-### • Implement for CONSTANTS:
-
-```ruby
-MY_CONSTANT = 'Important string'.freeze # Description of MY_CONSTANT
 ```
 
 ### • Add configuration for controlling spacing between lines
