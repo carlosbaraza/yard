@@ -10,10 +10,10 @@
   {
     'label': 'Packages'
     'submenu': [
-      'label': 'yard'
+      'label': 'Yard'
       'submenu': [
         {
-          'label': 'Create YARD'
+          'label': 'Generate Documentation'
           'command': 'yard:create'
         }
       ]
