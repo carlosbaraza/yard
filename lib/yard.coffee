@@ -5,13 +5,36 @@ module.exports = Yard =
   activate: (state) ->
     atom.commands.add 'atom-workspace', "yard:create", => @create()
 
+  config:
+    ensureBlankLineBeforeDescription:
+      type: 'boolean'
+      default: true
+    addCommentLineBeforeDescription:
+      type: 'boolean'
+      default: false
+    addCommentLineAfterDescription:
+      type: 'boolean'
+      default: true
+    addCommentLineBeforeParams:
+      type: 'boolean'
+      default: false
+    addCommentLineAfterParams:
+      type: 'boolean'
+      default: false
+    addCommentLineBeforeReturn:
+      type: 'boolean'
+      default: false
+    addCommentLineAfterReturn:
+      type: 'boolean'
+      default: false
+
   create: ->
     editor = atom.workspace.getActivePaneItem()
     cursor = editor.getLastCursor()
     editor.transact =>
       row = @parseStartRow(editor, cursor)
       if !row.type or @commentAlreadyExists(editor, row) then return
-      comment = @buildComment(row)
+      comment = @buildComment(editor, row)
       @insertSnippet(editor, cursor, row.number, comment, (row.type isnt 'constant'))
 
   parseStartRow: (editor, cursor) ->
@@ -64,20 +87,27 @@ module.exports = Yard =
       comment = ' ' + comment
     Snippets.insert(comment)
 
-  buildComment: (row) ->
+  buildComment: (editor, row) ->
     params = @buildParams(row.params)
-    comment = "# ${1:Description of #{row.name}}"
-
+    comment = ''
+    if atom.config.get('yard.ensureBlankLineBeforeDescription')
+      if editor.lineTextForBufferRow(row.number - 1).trim().length isnt 0
+        comment += "\n"
+    if atom.config.get('yard.addCommentLineBeforeDescription') then comment += "\n#"
+    comment += "# ${1:Description of #{row.name}}"
+    if atom.config.get('yard.addCommentLineAfterDescription') then comment += "\n#"
     if row.type.match /method/
       index = 1
-      comment += "\n#"
       for param in params
+        if atom.config.get('yard.addCommentLineBeforeParams') then comment += "\n#"
         comment += "\n# @param [${#{index+=1}:Type}] #{param.argument} "
         postfix = if param.default
           "default: #{param.default}"
         else
           "describe_#{param.argument}_here"
         comment += "${#{index+=1}:#{postfix}}"
+        if atom.config.get('yard.addCommentLineAfterParams') then comment += "\n#"
+      if atom.config.get('yard.addCommentLineBeforeReturn') then comment += "\n#"
       comment += "\n# @return [${#{index+=1}:Type}] ${#{index+1}:description_of_returned_object}"
 
     comment

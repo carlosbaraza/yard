@@ -52,26 +52,11 @@ end
 `Tab`/`shift + Tab` keys could be used to jump to the next param, description or
 Type.
 
-# Planned Future Development
+### Configuration
 
-### • Add support for Hash params with `@options`
-
-```ruby
-# Description of #undocumented_method
-#
-# @param [Type] param1
-# @option [Type] foo default: nil
-# @option [Type] bar default: nil
-# @option [Type] baz default: nil
-# @return [Type] description_of_returned_object
-def undocumented_method(param1={ foo:, bar:, baz: })
-  'The method is not documented!'
-end
-```
-
-### • Add configuration for controlling spacing between lines
-
-Add comment above or below the description/`@param`/`@return` _(and possibly add a blank line above the comment)_
+Through configuration settings you can add a blank comment line above or below the
+description, `@param`s, and `@return`, as well as ensure there is a blank line
+above the generated comment.
 
 ```ruby
 module UndocumentedModule
@@ -108,5 +93,22 @@ module UndocumentedModule
       'The method is not documented!'
     end
   end
+end
+```
+
+# Planned Future Development
+
+### • Add support for Hash params with `@options`
+
+```ruby
+# Description of #undocumented_method
+#
+# @param [Type] param1
+# @option [Type] foo default: nil
+# @option [Type] bar default: nil
+# @option [Type] baz default: nil
+# @return [Type] description_of_returned_object
+def undocumented_method(param1={ foo:, bar:, baz: })
+  'The method is not documented!'
 end
 ```
