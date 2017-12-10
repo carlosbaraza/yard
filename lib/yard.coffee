@@ -20,13 +20,14 @@ module.exports = Yard =
     editor.moveToEndOfLine()
     scanStart = cursor.getBufferPosition()
     endScan = [0,0]
-    regExp = /(def|class|module)\s(self)?(.?\w+)(\(.*\))?/
+    # TODO: add CONSTANTS RexExp /[A-Z_]+\s*=/
+    regExp = /(def|class|module)\s(self)?\.?(\w+)(\(.*\))?/
     editor.backwardsScanInBufferRange regExp, [scanStart, endScan], (element) =>
       row.params = element.match[4]
       row.number = element.range.end.row
       if element.match[1] is 'def'
-        row.name = if element.match[2] is 'self' then element.match[3] else '#' + element.match[3]
-        row.type = "#{if element.match[2] is 'self' then 'class ' else ''}method"
+        row.name = "#{if element.match[2] is 'self' then '.' else '#'}" + element.match[3]
+        row.type = "#{if element.match[2] is 'self' then 'class_' else ''}method"
       else
         row.name = element.match[3]
         row.type = element.match[1]
