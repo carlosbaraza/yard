@@ -9,51 +9,69 @@ module.exports = Yard =
     editor = atom.workspace.getActivePaneItem()
     cursor = editor.getLastCursor()
     editor.transact =>
-      {rowNumber, definitionType} = @findStartRow(editor, cursor)
-      if !definitionType then return
+      row = @parseStartRow(editor, cursor)
+      if !row.type or @commentAlreadyExists(editor, row) then return
 
-      params = @parseMethodLine(editor.lineTextForBufferRow(rowNumber))
-      snippet_string = @buildSnippetString(params, definitionType)
-      @insertSnippet(editor, cursor, rowNumber, snippet_string)
+      comment = @buildComment(row)
+      @insertSnippet(editor, cursor, row.number, comment)
 
-  findStartRow: (editor, cursor) ->
-    output = { rowNumber: 0, definitionType: '' }
+  parseStartRow: (editor, cursor) ->
+    row = { name: '', number: 0, params: '', type: '' }
     editor.moveToEndOfLine()
     scanStart = cursor.getBufferPosition()
     endScan = [0,0]
-    editor.backwardsScanInBufferRange /(def|class|module)\s(self)?/, [scanStart, endScan], (element) =>
-      output.definitionType = if element.match[1] is 'def'
-        "#{if element.match[2] is 'self' then 'class ' else ''}method"
+    regExp = /(def|class|module)\s(self)?(.?\w+)(\(.*\))?/
+    editor.backwardsScanInBufferRange regExp, [scanStart, endScan], (element) =>
+      row.params = element.match[4]
+      row.number = element.range.end.row
+      if element.match[1] is 'def'
+        row.name = if element.match[2] is 'self' then element.match[3] else '#' + element.match[3]
+        row.type = "#{if element.match[2] is 'self' then 'class ' else ''}method"
       else
-        element.match[1]
-      output.rowNumber = element.range.end.row
+        row.name = element.match[3]
+        row.type = element.match[1]
       element.stop()
-    output
+    row
 
-  insertSnippet: (editor, cursor, prevDefRow, snippet_string) ->
-    cursor.setBufferPosition([prevDefRow,0])
+  commentAlreadyExists: (editor, row) ->
+    if row.number is 0
+      return false
+    else
+      rowAbove = editor.lineTextForBufferRow(row.number - 1)
+      if row.type.match(/method/)
+        !!(rowAbove.match(/# @return/))
+      else
+        !!(rowAbove.match(/# /))
+
+  insertSnippet: (editor, cursor, definitionRowNumber, comment) ->
+    cursor.setBufferPosition([definitionRowNumber, 0])
     editor.moveToFirstCharacterOfLine()
     indentation = cursor.getIndentLevel()
     editor.insertNewlineAbove()
     editor.setIndentationForBufferRow(cursor.getBufferRow(), indentation)
-    Snippets.insert(snippet_string)
+    Snippets.insert(comment)
 
-  buildSnippetString: (params, definitionType) ->
-    snippet_string = "# ${1:Description of #{definitionType}}\n#"
+  buildComment: (row) ->
+    params = @buildParams(row.params)
+    comment = "# ${1:Description of #{row.name}}"
 
-    if definitionType.match /method/
-      index = 2
+    if row.type.match /method/
+      index = 1
+      comment += "\n#"
       for param in params
-        cleanParam = param.replace(':', '')
-        snippet_string += "\n# @param [${#{index}:Type}] #{cleanParam} ${#{index + 1}:describe_#{cleanParam}}"
-        index += 2
+        comment += "\n# @param [${#{index+=1}:Type}] #{param.argument} "
+        postfix = if param.default
+          "default: #{param.default}"
+        else
+          "describe_#{param.argument}_here"
+        comment += "${#{index+=1}:#{postfix}}"
+      comment += "\n# @return [${#{index+=1}:Type}] ${#{index+1}:description_of_returned_object}"
 
-      snippet_string += "\n# @return [${#{index}:Type}] ${#{index + 1}:description of returned object}"
-    snippet_string
+    comment
 
-  parseMethodLine: (methodLine) ->
-    opened_bracket = methodLine.indexOf("(")
-    closed_bracket = methodLine.indexOf(")")
-    return [] if opened_bracket == -1 and closed_bracket == -1
-    params_string = methodLine.substring(opened_bracket + 1, closed_bracket)
-    params_string.split(',').map((m) -> m.trim())
+  buildParams: (paramString) =>
+    if !paramString then return []
+    paramsArray = paramString.replace(/\(|\)/g, '').split(',')
+    for param in paramsArray
+      paramMatch = param.match /(\w+)\s*([=:])?\s*(.+)?/
+      { argument: paramMatch[1], default: paramMatch[2] && paramMatch[3] }
