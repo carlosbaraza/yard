@@ -74,4 +74,4 @@ module.exports = Yard =
     paramsArray = paramString.replace(/\(|\)/g, '').split(',')
     for param in paramsArray
       paramMatch = param.match /(\w+)\s*([=:])?\s*(.+)?/
-      { argument: paramMatch[1], default: paramMatch[2] && paramMatch[3] }
+      { argument: paramMatch[1], default: paramMatch[2] && (paramMatch[3] || 'nil') }
