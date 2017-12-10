@@ -12,7 +12,10 @@ module.exports = Yard =
     addCommentLineBeforeDescription:
       type: 'boolean'
       default: false
-    addCommentLineAfterDescription:
+    addCommentLineAfterClassOrModuleDescription:
+      type: 'boolean'
+      default: false
+    addCommentLineAfterMethodDescription:
       type: 'boolean'
       default: true
     addCommentLineBeforeParams:
@@ -90,24 +93,29 @@ module.exports = Yard =
   buildComment: (editor, row) ->
     params = @buildParams(row.params)
     comment = ''
-    if atom.config.get('yard.ensureBlankLineBeforeDescription')
+    if row.number isnt 0 and row.type isnt 'constant' and atom.config.get('yard.ensureBlankLineBeforeDescription')
       if editor.lineTextForBufferRow(row.number - 1).trim().length isnt 0
         comment += "\n"
     if atom.config.get('yard.addCommentLineBeforeDescription') then comment += "\n#"
+    # Description
     comment += "# ${1:Description of #{row.name}}"
-    if atom.config.get('yard.addCommentLineAfterDescription') then comment += "\n#"
+
+    if row.type.match /(class|module)/
+      if atom.config.get('yard.addCommentLineAfterClassOrModuleDescription') then comment += "\n#"
     if row.type.match /method/
+      if atom.config.get('yard.addCommentLineAfterMethodDescription') then comment += "\n#"
       index = 1
       for param in params
         if atom.config.get('yard.addCommentLineBeforeParams') then comment += "\n#"
+        # @param
         comment += "\n# @param [${#{index+=1}:Type}] #{param.argument} "
-        postfix = if param.default
-          "default: #{param.default}"
-        else
-          "describe_#{param.argument}_here"
+        postfix = if param.default then "default: #{param.default}" else "describe_#{param.argument}_here"
         comment += "${#{index+=1}:#{postfix}}"
+
         if atom.config.get('yard.addCommentLineAfterParams') then comment += "\n#"
       if atom.config.get('yard.addCommentLineBeforeReturn') then comment += "\n#"
+
+      # @return
       comment += "\n# @return [${#{index+=1}:Type}] ${#{index+1}:description_of_returned_object}"
 
     comment
