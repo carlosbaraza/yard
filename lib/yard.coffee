@@ -5,40 +5,14 @@ module.exports = Yard =
   activate: (state) ->
     atom.commands.add 'atom-workspace', "yard:create", => @create()
 
-  config:
-    ensureBlankLineBeforeDescription:
-      type: 'boolean'
-      default: true
-    addCommentLineBeforeDescription:
-      type: 'boolean'
-      default: false
-    addCommentLineAfterClassOrModuleDescription:
-      type: 'boolean'
-      default: false
-    addCommentLineAfterMethodDescription:
-      type: 'boolean'
-      default: true
-    addCommentLineBeforeParams:
-      type: 'boolean'
-      default: false
-    addCommentLineAfterParams:
-      type: 'boolean'
-      default: false
-    addCommentLineBeforeReturn:
-      type: 'boolean'
-      default: false
-    addCommentLineAfterReturn:
-      type: 'boolean'
-      default: false
-
   create: ->
     editor = atom.workspace.getActivePaneItem()
     cursor = editor.getLastCursor()
     editor.transact =>
       row = @parseStartRow(editor, cursor)
-      if !row.type or @commentAlreadyExists(editor, row) then return
+      if !row.type or !@turnedOn(row) or @commentAlreadyExists(editor, row) then return
       comment = @buildComment(editor, row)
-      @insertSnippet(editor, cursor, row.number, comment, (row.type isnt 'constant'))
+      @insertSnippet(editor, cursor, row, comment)
 
   parseStartRow: (editor, cursor) ->
     row = { name: '', number: 0, params: '', type: '' }
@@ -80,17 +54,31 @@ module.exports = Yard =
       else
         /# /.test rowAbove
 
-  insertSnippet: (editor, cursor, definitionRowNumber, comment, printAbove) ->
-    cursor.setBufferPosition([definitionRowNumber, 0])
+  turnedOn: (row) ->
+    switch row.type
+      when 'class'
+        atom.config.get('yard.addCommentForClasses')
+      when 'constant'
+        atom.config.get('yard.addCommentForConstants')
+      when 'module'
+        atom.config.get('yard.addCommentForModules')
+      else
+        true
+
+  insertSnippet: (editor, cursor, row, comment) ->
+    cursor.setBufferPosition([row.number, 0])
     editor.moveToFirstCharacterOfLine()
     indentation = cursor.getIndentLevel()
-    if printAbove
-      editor.insertNewlineAbove()
-      editor.setIndentationForBufferRow(cursor.getBufferRow(), indentation)
-    else
+    if @inlineComment(row.type)
       editor.moveToEndOfLine()
       comment = ' ' + comment
+    else
+      editor.insertNewlineAbove()
+      editor.setIndentationForBufferRow(cursor.getBufferRow(), indentation)
     Snippets.insert(comment)
+
+  inlineComment: (rowType) ->
+    rowType is 'constant' &&  atom.config.get('yard.addCommentForConstantsInline')
 
   buildComment: (editor, row) ->
     comment = ''
@@ -128,3 +116,41 @@ module.exports = Yard =
     for param in paramsArray
       paramMatch = param.match /(\w+)\s*([=:])?\s*(.+)?/
       { argument: paramMatch[1], default: paramMatch[2] && (paramMatch[3] || 'nil') }
+
+  config:
+    addCommentForClasses:
+      type: 'boolean'
+      default: true
+    addCommentForModules:
+      type: 'boolean'
+      default: true
+    addCommentForConstants:
+      type: 'boolean'
+      default: true
+    addCommentForConstantsInline:
+      type: 'boolean'
+      default: true
+    ensureBlankLineBeforeDescription:
+      type: 'boolean'
+      default: true
+    addCommentLineBeforeDescription:
+      type: 'boolean'
+      default: false
+    addCommentLineAfterClassOrModuleDescription:
+      type: 'boolean'
+      default: false
+    addCommentLineAfterMethodDescription:
+      type: 'boolean'
+      default: true
+    addCommentLineBeforeParams:
+      type: 'boolean'
+      default: false
+    addCommentLineAfterParams:
+      type: 'boolean'
+      default: false
+    addCommentLineBeforeReturn:
+      type: 'boolean'
+      default: false
+    addCommentLineAfterReturn:
+      type: 'boolean'
+      default: false
