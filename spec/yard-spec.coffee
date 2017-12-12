@@ -24,23 +24,23 @@ describe "Yard", ->
               'The method is not documented!'
             end
           end
-
         """
         editor.getLastCursor().setBufferPosition([2,0])
         atom.commands.dispatch workspaceElement, 'yard:create'
 
       it "writes a default YARD doc", ->
-        expected_output = """class UndocumentedClass
-                               # Description of method
-                               #
-                               # @param [Type] param1 describe param1
-                               # @param [Type] param2=3 describe param2=3
-                               # @return [Type] description of returned object
-                               def undocumented_method(param1, param2=3)
-                                 'The method is not documented!'
-                               end
-                             end
-                             """
+        expected_output = """
+          class UndocumentedClass
+            # Description of #undocumented_method
+            #
+            # @param [Type] param1 describe_param1_here
+            # @param [Type] param2 default: 3
+            # @return [Type] description_of_returned_object
+            def undocumented_method(param1, param2=3)
+              'The method is not documented!'
+            end
+          end
+        """
         output = buffer.getText()
         expect(output).toContain(expected_output)
 
@@ -57,25 +57,25 @@ describe "Yard", ->
               'Noooot documented!!!'
             end
           end
-
         """
         editor.getLastCursor().setBufferPosition([4,0])
         atom.commands.dispatch workspaceElement, 'yard:create'
 
       it "writes a default YARD doc", ->
-        expected_output = """class UndocumentedClass
-                               # Description of method
-                               #
-                               # @param [Type] param1 describe param1
-                               # @param [Type] param2 = 3 describe param2 = 3
-                               # @param [Type] opts = {} describe opts = {}
-                               # @return [Type] description of returned object
-                               def undocumented_multiline_method(param1, param2 = 3, opts = {})
-                                 'Not documented!'
-                                 'Noot documented!'
-                                 'Noooot documented!!!'
-                               end
-                             end
-                             """
+        expected_output = """
+          class UndocumentedClass
+            # Description of #undocumented_multiline_method
+            #
+            # @param [Type] param1 describe_param1_here
+            # @param [Type] param2 default: 3
+            # @param [Type] opts default: {}
+            # @return [Type] description_of_returned_object
+            def undocumented_multiline_method(param1, param2 = 3, opts = {})
+              'Not documented!'
+              'Noot documented!'
+              'Noooot documented!!!'
+            end
+          end
+        """
         output = buffer.getText()
         expect(output).toContain(expected_output)

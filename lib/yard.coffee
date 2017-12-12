@@ -132,7 +132,7 @@ module.exports = Yard =
       default: true
     ensureBlankLineBeforeDescription:
       type: 'boolean'
-      default: true
+      default: false
     addCommentLineBeforeDescription:
       type: 'boolean'
       default: false
