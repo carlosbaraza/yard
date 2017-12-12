@@ -30,7 +30,7 @@ describe "Yard", ->
           editor.getLastCursor().setBufferPosition([1,0])
           atom.commands.dispatch workspaceElement, 'yard:create'
 
-        it "writes a default YARD doc", ->
+        it "does nothing", ->
           expected_output = """
             class UndocumentedClass
               CONSTANT = 1 # This can be anything
@@ -58,7 +58,7 @@ describe "Yard", ->
           editor.getLastCursor().setBufferPosition([0,0])
           atom.commands.dispatch workspaceElement, 'yard:create'
 
-        it "writes a default YARD doc", ->
+        it "does nothing", ->
           expected_output = """
             # This can be anything
             class UndocumentedClass
@@ -112,7 +112,7 @@ describe "Yard", ->
             editor.getLastCursor().setBufferPosition([3,0])
             atom.commands.dispatch workspaceElement, 'yard:create'
 
-          it "inserts a default YARD doc", ->
+          it "inserts a default YARD doc between the comment and the definition", ->
             expected_output = """
               class UndocumentedClass
                 # Any comment
@@ -145,7 +145,7 @@ describe "Yard", ->
         editor.getLastCursor().setBufferPosition([1,0])
         atom.commands.dispatch workspaceElement, 'yard:create'
 
-      it "writes a default YARD doc", ->
+      it "writes an inline YARD doc", ->
         expected_output = """
           class UndocumentedClass
             FANCY_CONSTANT = :foo # Description of FANCY_CONSTANT
@@ -172,7 +172,7 @@ describe "Yard", ->
         editor.getLastCursor().setBufferPosition([0,0])
         atom.commands.dispatch workspaceElement, 'yard:create'
 
-      it "writes a default YARD doc", ->
+      it "writes YARD doc description", ->
         expected_output = """
           # Description of UndocumentedClass
           class UndocumentedClass
@@ -201,7 +201,7 @@ describe "Yard", ->
         editor.getLastCursor().setBufferPosition([0,0])
         atom.commands.dispatch workspaceElement, 'yard:create'
 
-      it "writes a default YARD doc", ->
+      it "writes YARD doc description", ->
         expected_output = """
           # Description of UndocumentedModule
           module UndocumentedModule
