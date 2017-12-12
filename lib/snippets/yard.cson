@@ -10,9 +10,11 @@
     body: '# @param [${1:Type}] ${2:param_name} ${3:describe_param_here}'
   'YARD @param [Hash] with @options':
     prefix: '#@H'
-    body: "# @param [${1:Type}] ${2:argument}" +
-    "\n# @option ${2:parent} [${3:Type}] ${4:argument} ${5:definition}" +
-    "\n# @option ${2:parent} [${6:Type}] ${7:argument} ${8:definition}"
+    body: """
+      # @param [${1:Type}] ${2:argument}
+      # @option ${2:parent} [${3:Type}] ${4:argument} ${5:definition}
+      # @option ${2:parent} [${6:Type}] ${7:argument} ${8:definition}
+    """
   'YARD @return':
     prefix: '#@R'
     body: '# @return [${1:Type}] ${2:definition}'
