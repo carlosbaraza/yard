@@ -9,38 +9,148 @@ module.exports = Yard =
     editor = atom.workspace.getActivePaneItem()
     cursor = editor.getLastCursor()
     editor.transact =>
-      prevDefRow = @findStartRow(editor, cursor)
-      params = @parseMethodLine(editor.lineTextForBufferRow(prevDefRow))
-      snippet_string = @buildSnippetString(params)
-      @insertSnippet(editor, cursor, prevDefRow, snippet_string)
+      row = @parseStartRow(editor, cursor)
+      if !row.type or !@turnedOn(row) or @commentAlreadyExists(editor, row) then return
+      comment = @buildComment(editor, row)
+      @insertSnippet(editor, cursor, row, comment)
 
-  findStartRow: (editor, cursor) ->
-    row = cursor.getBufferRow()
-    while (editor.buffer.lines[row].indexOf('def ') == -1)
-      break if row == 0
-      row -= 1
+  parseStartRow: (editor, cursor) ->
+    row = { name: '', number: 0, params: '', type: '' }
+    editor.moveToEndOfLine()
+    scanStart = cursor.getBufferPosition()
+    endScan = [0,0]
+    regExp = ///
+      (def|class|module|[A-Z_]+\s*=) # [1] determines what is being defined
+      \s+                            # spaces between keyword and name
+      (self)?                        # [2] determines whether or not it's a class_method
+      \.?                            # period that exists for class_method
+      (\w+)?                         # [3] class, method, or module name
+      (\(.*\))?                      # [4] params
+    ///
+    editor.backwardsScanInBufferRange regExp, [scanStart, endScan], (element) =>
+      row.params = element.match[4]
+      row.number = element.range.end.row
+      if element.match[1] is 'def'
+        row.name = "#{if element.match[2] is 'self' then '.' else '#'}" + element.match[3]
+        row.type = "#{if element.match[2] is 'self' then 'class_' else ''}method"
+      else if /[A-Z_]+\s*=/.test element.match[1]
+        row.name = element.match[1].replace('=', '').trim()
+        row.type = 'constant'
+      else
+        row.name = element.match[3]
+        row.type = element.match[1]
+      element.stop()
     row
 
-  insertSnippet: (editor, cursor, prevDefRow, snippet_string) ->
-    cursor.setBufferPosition([prevDefRow,0])
+  commentAlreadyExists: (editor, row) ->
+    if row.number is 0 then return false
+    currentRow = editor.lineTextForBufferRow(row.number)
+    rowAbove = editor.lineTextForBufferRow(row.number - 1)
+    switch
+      when /constant/.test row.type
+        /# /.test currentRow
+      when /method/.test row.type
+        /# @return/.test rowAbove
+      else
+        /# /.test rowAbove
+
+  turnedOn: (row) ->
+    switch row.type
+      when 'class'
+        atom.config.get('yard.addCommentForClasses')
+      when 'constant'
+        atom.config.get('yard.addCommentForConstants')
+      when 'module'
+        atom.config.get('yard.addCommentForModules')
+      else
+        true
+
+  insertSnippet: (editor, cursor, row, comment) ->
+    cursor.setBufferPosition([row.number, 0])
     editor.moveToFirstCharacterOfLine()
     indentation = cursor.getIndentLevel()
-    editor.insertNewlineAbove()
-    editor.setIndentationForBufferRow(cursor.getBufferRow(), indentation)
-    Snippets.insert(snippet_string)
+    if @inlineComment(row.type)
+      editor.moveToEndOfLine()
+      comment = ' ' + comment
+    else
+      editor.insertNewlineAbove()
+      editor.setIndentationForBufferRow(cursor.getBufferRow(), indentation)
+    Snippets.insert(comment)
 
-  buildSnippetString: (params) ->
-    snippet_string = "# ${1:Description of method}\n#\n"
-    index = 2
-    for param in params
-      snippet_string += "# @param [${#{index}:Type}] #{param} ${#{index + 1}:describe #{param}}\n"
-      index += 2
-    snippet_string += "# @return [${#{index}:Type}] ${#{index + 1}:description of returned object}"
-    snippet_string
+  inlineComment: (rowType) ->
+    rowType is 'constant' &&  atom.config.get('yard.addCommentForConstantsInline')
 
-  parseMethodLine: (methodLine) ->
-    opened_bracket = methodLine.indexOf("(")
-    closed_bracket = methodLine.indexOf(")")
-    return [] if opened_bracket == -1 and closed_bracket == -1
-    params_string = methodLine.substring(opened_bracket + 1, closed_bracket)
-    params_string.split(',').map((m) -> m.trim())
+  buildComment: (editor, row) ->
+    comment = ''
+    index = 0
+    if row.type isnt 'constant'
+      if row.number isnt 0 and editor.lineTextForBufferRow(row.number - 1).trim().length isnt 0
+        if atom.config.get('yard.ensureBlankLineBeforeDescription') then comment += "\n"
+    if atom.config.get('yard.addCommentLineBeforeDescription') then comment += "\n#"
+    # Description
+    comment += "# ${#{index+=1}:Description of #{row.name}}"
+    switch
+      when /method/.test row.type
+        if atom.config.get('yard.addCommentLineAfterMethodDescription') then comment += "\n#"
+        params = @buildParams(row.params)
+        for param in params
+          if atom.config.get('yard.addCommentLineBeforeParams') then comment += "\n#"
+          # @param
+          comment += "\n# @param [${#{index+=1}:Type}] #{param.argument} "
+          description = if param.default then "default: #{param.default}" else "describe_#{param.argument}_here"
+          comment += "${#{index+=1}:#{description}}"
+          if atom.config.get('yard.addCommentLineAfterParams') then comment += "\n#"
+        if atom.config.get('yard.addCommentLineBeforeReturn') then comment += "\n#"
+        # @return
+        comment += "\n# @return [${#{index+=1}:Type}] ${#{index+1}:description_of_returned_object}"
+        if atom.config.get('yard.addCommentLineAfterReturn') then comment += "\n#"
+
+      when /\A(class|module)\z/.test row.type
+        if atom.config.get('yard.addCommentLineAfterClassOrModuleDescription') then comment += "\n#"
+
+    comment
+
+  buildParams: (paramString) =>
+    if !paramString then return []
+    paramsArray = paramString.replace(/\(|\)/g, '').split(',')
+    for param in paramsArray
+      paramMatch = param.match /(\w+)\s*([=:])?\s*(.+)?/
+      { argument: paramMatch[1], default: paramMatch[2] && (paramMatch[3] || 'nil') }
+
+  config:
+    addCommentForClasses:
+      type: 'boolean'
+      default: true
+    addCommentForModules:
+      type: 'boolean'
+      default: true
+    addCommentForConstants:
+      type: 'boolean'
+      default: true
+    addCommentForConstantsInline:
+      type: 'boolean'
+      default: true
+    ensureBlankLineBeforeDescription:
+      type: 'boolean'
+      default: false
+    addCommentLineBeforeDescription:
+      type: 'boolean'
+      default: false
+    addCommentLineAfterClassOrModuleDescription:
+      type: 'boolean'
+      default: false
+    addCommentLineAfterMethodDescription:
+      type: 'boolean'
+      default: true
+    addCommentLineBeforeParams:
+      type: 'boolean'
+      default: false
+    addCommentLineAfterParams:
+      type: 'boolean'
+      default: false
+    addCommentLineBeforeReturn:
+      type: 'boolean'
+      default: false
+    addCommentLineAfterReturn:
+      type: 'boolean'
+      default: false

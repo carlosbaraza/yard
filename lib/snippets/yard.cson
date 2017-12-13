@@ -1,0 +1,20 @@
+'.source.ruby':
+  'YARD @example':
+    prefix: '#@E'
+    body: "#\n# @example ${1:example here}\n#"
+  'YARD @option':
+    prefix: '#@O'
+    body: '# @option ${1:parent} [${2:Type}] ${3:argument} ${4:definition}'
+  'YARD @param':
+    prefix: '#@P'
+    body: '# @param [${1:Type}] ${2:param_name} ${3:describe_param_here}'
+  'YARD @param [Hash] with @options':
+    prefix: '#@H'
+    body: """
+      # @param [${1:Type}] ${2:argument}
+      # @option ${2:parent} [${3:Type}] ${4:argument} ${5:definition}
+      # @option ${2:parent} [${6:Type}] ${7:argument} ${8:definition}
+    """
+  'YARD @return':
+    prefix: '#@R'
+    body: '# @return [${1:Type}] ${2:definition}'
