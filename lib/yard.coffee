@@ -96,7 +96,7 @@ module.exports = Yard =
         for param in params
           if atom.config.get('yard.addCommentLineBeforeParams') then comment += "\n#"
           # @param
-          comment += "\n# @param [${#{index+=1}:Type}] #{param.argument} "
+          comment += "\n# @param #{param.argument} [${#{index+=1}:Type}] "
           description = if param.default then "default: #{param.default}" else "describe_#{param.argument}_here"
           comment += "${#{index+=1}:#{description}}"
           if atom.config.get('yard.addCommentLineAfterParams') then comment += "\n#"
