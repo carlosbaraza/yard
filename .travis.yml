@@ -15,6 +15,9 @@ os:
   - osx
 
 ### Generic setup follows ###
+before_script:
+  - rm -rf $TRAVIS_BUILD_DIR/snippets/
+
 script:
   - curl -s -O https://raw.githubusercontent.com/atom/ci/master/build-package.sh
   - chmod u+x build-package.sh
@@ -28,6 +31,7 @@ notifications:
 branches:
   only:
     - master
+    - ci_test
 
 git:
   depth: 10
