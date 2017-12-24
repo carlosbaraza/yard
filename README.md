@@ -22,9 +22,9 @@ module UndocumentedModule
 
     # Description of #undocumented_method
     #
-    # @param [Type] param1 describe_param1
-    # @param [Type] param2 default: 3
-    # @param [Type] param4 default: { foo: :bar, baz: 'qux' }
+    # @param param1 [Type] describe_param1
+    # @param param2 [Type] default: 3
+    # @param param4 [Type] default: { foo: :bar, baz: 'qux' }
     # @return [Type] description_of_returned_object
     def undocumented_method(param1, param2=3, param4 = { foo: :bar, baz: 'qux' })
       'The method is not documented!'
@@ -32,9 +32,9 @@ module UndocumentedModule
 
     # Description of #method_with_named_params
     #
-    # @param [Type] param1 default: nil
-    # @param [Type] param2 default: true
-    # @param [Type] param3 default: nil
+    # @param param1 [Type] describe_param1
+    # @param param2 [Type] default: true
+    # @param param3 [Type] default: nil
     # @return [Type] description_of_returned_object
     def method_with_named_params(param1:, param2: true, param3: nil)
       'The method is not documented!'
@@ -42,8 +42,8 @@ module UndocumentedModule
 
     # Description of .undocumented_method
     #
-    # @param [Type] param1 describe_param1
-    # @param [Type] param2 default: 3
+    # @param param1 [Type] describe_param1
+    # @param param2 [Type] default: 3
     # @return [Type] description_of_returned_object
     def self.undocumented_class_method(param1, param2=3)
       'The method is not documented!'
@@ -61,8 +61,8 @@ Type.
 | ------------------ | ------------------------------------------------------------------------------------------------------------------ |
 | #@E                | `#\n# @example example here\n#`                                                                                    |
 | #@O                | `# @option parent [Type] argument definition`                                                                      |
-| #@P                | `# @param [Type] param_name describe_param_here`                                                                   |
-| #@H                | `# @param [Type] argument# @option parent [Type] argument definition\n# @option parent [Type] argument definition` |
+| #@P                | `# @param param_name [Type] describe_param_here`                                                                   |
+| #@H                | `# @param argument [Type]\n# @option parent [Type] argument definition\n# @option parent [Type] argument definition` |
 | #@R                | `# @return [Type] definition`                                                                                      |
 
 ## Configuration
@@ -89,8 +89,8 @@ module UndocumentedModule
   # Description of UndocumentedClass
   class UndocumentedClass
     # Description of #undocumented_method
-    # @param [Type] param1 describe param1
-    # @param [Type] param2 default: 3
+    # @param param1 [Type] describe param1
+    # @param param2 [Type] default: 3
     # @return [Type] description_of_returned_object
     def undocumented_method(param1, param2=3)
       'The method is not documented!'
@@ -116,10 +116,10 @@ module UndocumentedModule
     # Description of #undocumented_method
     #
     #
-    # @param [Type] param1 describe param1
+    # @param param1 [Type] describe param1
     #
     #
-    # @param [Type] param2 default: 3
+    # @param param2 [Type] default: 3
     #
     #
     # @return [Type] description_of_returned_object
@@ -140,12 +140,12 @@ and any combination in between.
 ```ruby
 # Description of #undocumented_method
 #
-# @param [Type] param1
-# @option [Type] foo default: nil
-# @option [Type] bar default: nil
-# @option [Type] baz default: nil
+# @param param1 [Type]
+# @option param1 [Type] foo default: nil
+# @option param1 [Type] bar default: nil
+# @option param1 [Type] baz default: nil
 # @return [Type] description_of_returned_object
-def undocumented_method(param1={ foo:, bar:, baz: })
+def undocumented_method(param1={ foo: nil, bar: nil, baz: nil })
   'The method is not documented!'
 end
 ```

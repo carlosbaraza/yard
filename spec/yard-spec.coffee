@@ -118,8 +118,8 @@ describe "Yard", ->
                 # Any comment
                 # Description of #undocumented_method
                 #
-                # @param [Type] param1 describe_param1_here
-                # @param [Type] param2 default: 3
+                # @param param1 [Type] describe_param1_here
+                # @param param2 [Type] default: 3
                 # @return [Type] description_of_returned_object
                 def undocumented_method(param1, param2=3)
                   'The method is not documented!'
@@ -235,8 +235,8 @@ describe "Yard", ->
           class UndocumentedClass
             # Description of .undocumented_method
             #
-            # @param [Type] param1 describe_param1_here
-            # @param [Type] param2 default: 3
+            # @param param1 [Type] describe_param1_here
+            # @param param2 [Type] default: 3
             # @return [Type] description_of_returned_object
             def self.undocumented_method(param1, param2=3)
               'The method is not documented!'
@@ -268,9 +268,9 @@ describe "Yard", ->
           class UndocumentedClass
             # Description of #undocumented_multiline_method
             #
-            # @param [Type] param1 describe_param1_here
-            # @param [Type] param2 default: 3
-            # @param [Type] opts default: {}
+            # @param param1 [Type] describe_param1_here
+            # @param param2 [Type] default: 3
+            # @param opts [Type] default: {}
             # @return [Type] description_of_returned_object
             def undocumented_multiline_method(param1, param2 = 3, opts = {})
               'Not documented!'
@@ -312,8 +312,8 @@ describe "Yard", ->
 
           # Description of #undocumented_method
           #
-          # @param [Type] param1 describe_param1_here
-          # @param [Type] param2 default: 3
+          # @param param1 [Type] describe_param1_here
+          # @param param2 [Type] default: 3
           # @return [Type] description_of_returned_object
           def undocumented_method(param1, param2=3)
             'The method is not documented!'
@@ -321,7 +321,7 @@ describe "Yard", ->
 
           # Description of #another_undocumented_method
           #
-          # @param [Type] param1 describe_param1_here
+          # @param param1 [Type] describe_param1_here
           # @return [Type] description_of_returned_object
           def another_undocumented_method(param1)
             'The method is not documented!'
